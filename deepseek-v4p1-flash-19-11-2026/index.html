@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LUMENFALL — a bullet-hell garden</title>
+<meta name="description" content="LUMENFALL is a neon bullet-hell roguelite. Graze death to charge your nova, grow impossible builds, and hold back the dark for one more wave.">
+<meta name="theme-color" content="#03040a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2303040a'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23ffe6a3'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%237df9ff' stroke-opacity='.85' stroke-width='2'/%3E%3Cpath d='M32 3v10M32 51v10M3 32h10M51 32h10' stroke='%237df9ff' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <canvas id="game" aria-label="LUMENFALL game arena"></canvas>
+  <div class="fx-vignette"></div>
+  <div class="fx-grain"></div>
+  <div class="fx-danger" id="dangerFlash"></div>
+
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <div id="hud">
+    <div class="hud-topleft">
+      <div id="hpPips" class="pips"></div>
+      <div class="hud-sublines">
+        <div id="shieldPips" class="pips shields"></div>
+        <div id="dashPips" class="dash-pips"></div>
+      </div>
+    </div>
+
+    <div class="hud-topcenter">
+      <div class="wave-label"><span>WAVE</span> <b id="waveNum">1</b> <i id="waveSub"></i></div>
+      <div class="wave-track"><div id="waveFill"></div></div>
+    </div>
+
+    <div class="hud-topright">
+      <div id="score" class="score">0</div>
+      <div id="best" class="best">BEST 0</div>
+      <div id="combo" class="combo"></div>
+    </div>
+
+    <div id="bossBar" class="boss-bar">
+      <div class="boss-head"><span id="bossName"></span><span id="bossHpText"></span></div>
+      <div class="boss-track"><div id="bossFill"></div></div>
+    </div>
+
+    <div id="banner" class="banner"><div class="banner-title" id="bannerTitle"></div><div class="banner-sub" id="bannerSub"></div></div>
+
+    <div id="novaHint" class="nova-hint"><span class="nova-glyph">✦</span> NOVA READY <kbd>RMB</kbd></div>
+
+    <div class="control-hint" id="controlHint">
+      <span><kbd>W A S D</kbd> move</span><span><kbd>MOUSE</kbd> aim</span><span><kbd>LMB</kbd> fire</span><span><kbd>SPACE</kbd> dash</span><span><kbd>RMB</kbd> nova</span><span><kbd>ESC</kbd> pause</span>
+    </div>
+
+    <div class="xp-wrap">
+      <div class="xp-meta"><span id="levelLabel">LV 1</span><span id="xpText"></span></div>
+      <div class="xp-track"><div id="xpFill"></div></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="touchControls" class="touch-controls hidden">
+      <button id="btnTouchPause" class="touch-btn" aria-label="Pause">II</button>
+      <button id="btnTouchDash" class="touch-btn" aria-label="Dash">DASH</button>
+      <button id="btnTouchNova" class="touch-btn nova" aria-label="Nova">NOVA</button>
+    </div>
+  </div>
+
+  <div id="screens">
+
+    <section id="screen-title" class="screen active">
+      <div class="title-inner">
+        <div class="eyebrow reveal">A BULLET-HELL GARDEN</div>
+        <h1 class="logo reveal">
+          <span class="logo-a">LUMEN</span>
+          <span class="logo-b">fall</span>
+        </h1>
+        <p class="tagline reveal">Grow light in the dark. <em>Feed it well.</em></p>
+        <div class="menu reveal">
+          <button id="btnStart" class="btn primary"><span>BEGIN DESCENT</span><em>↗</em></button>
+          <div class="menu-row">
+            <button id="btnMeta" class="btn">CONSTELLATION</button>
+            <button id="btnHow" class="btn">HOW TO PLAY</button>
+          </div>
+        </div>
+        <div class="title-stats reveal">
+          <div><span>STARDUST</span><strong id="titleDust">0</strong></div>
+          <div><span>BEST SCORE</span><strong id="titleBest">0</strong></div>
+          <div><span>BEST WAVE</span><strong id="titleBestWave">0</strong></div>
+        </div>
+      </div>
+      <div class="corner-note">AN ENDLESS ROGUELITE OF LIGHT · v1.0</div>
+      <div class="sound-cluster">
+        <button id="btnMusicTitle" class="icon-btn" title="Toggle music" aria-label="Toggle music"><svg><use href="#i-music"/></svg></button>
+        <button id="btnSfxTitle" class="icon-btn" title="Toggle sound effects" aria-label="Toggle sound effects"><svg><use href="#i-sound"/></svg></button>
+      </div>
+    </section>
+
+    <section id="screen-loadout" class="screen">
+      <div class="screen-scroll">
+        <header class="screen-head">
+          <button class="back" data-back="title">← BACK</button>
+          <div class="eyebrow">CHOOSE YOUR LIGHT</div>
+          <h2>THE VESSEL</h2>
+          <p>Each seed of starlight burns a little differently.</p>
+        </header>
+        <div id="weaponGrid" class="weapon-grid"></div>
+        <div class="loadout-foot">
+          <div class="loadout-info">
+            <div class="meta-summary" id="metaSummary"></div>
+            <label class="seed-entry" for="seedInput">
+              <span>RUN SEED</span>
+              <input id="seedInput" type="text" maxlength="12" placeholder="RANDOM" autocomplete="off" spellcheck="false">
+            </label>
+          </div>
+          <button id="btnDescend" class="btn primary"><span>DESCEND</span><em>↗</em></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-meta" class="screen">
+      <div class="screen-scroll">
+        <header class="screen-head">
+          <button class="back" data-back="title">← BACK</button>
+          <div class="eyebrow">ETERNAL PROGRESS</div>
+          <h2>THE CONSTELLATION</h2>
+          <p>Spend the dust of dead stars. Become impossible.</p>
+          <div class="dust-pill"><span class="dust-glyph">✦</span> <b id="dustAmount">0</b> STARDUST</div>
+        </header>
+        <div id="metaGrid" class="meta-grid"></div>
+        <div class="meta-foot">Runs end. The garden remembers.</div>
+      </div>
+    </section>
+
+    <section id="screen-how" class="screen">
+      <div class="screen-scroll">
+        <header class="screen-head">
+          <button class="back" data-back="title">← BACK</button>
+          <div class="eyebrow">THE RULES OF LIGHT</div>
+          <h2>HOW TO PLAY</h2>
+        </header>
+        <div class="how-grid">
+          <article class="how-card wide">
+            <h3>You are the last light.</h3>
+            <p>Survive an endless tide of hollow things. They drop <b>motes</b>; collect them to level up and choose a <b>blessing</b>. Stack blessings into absurd, beautiful builds. Every fifth wave, a <b>cosmic horror</b> wakes up.</p>
+          </article>
+          <article class="how-card accent">
+            <div class="how-icon"><svg><use href="#i-star"/></svg></div>
+            <h3>Graze to bloom</h3>
+            <p>Skim past hostile fire without being hit to charge your <b>Nova</b>. When it is full, unleash it to erase every bullet nearby and tear a hole in the dark.</p>
+          </article>
+          <article class="how-card">
+            <div class="how-icon"><svg><use href="#i-dash"/></svg></div>
+            <h3>Dash through death</h3>
+            <p>Your dash grants brief invulnerability. Charges refill automatically. Panic is not a plan, but it is a start.</p>
+          </article>
+          <article class="how-card">
+            <div class="how-icon"><svg><use href="#i-skull"/></svg></div>
+            <h3>Chase the combo</h3>
+            <p>Kill quickly or lose the streak. Combos multiply your score and turn a good run into a legendary one.</p>
+          </article>
+          <article class="how-card">
+            <div class="how-icon"><svg><use href="#i-gem"/></svg></div>
+            <h3>Die. Grow. Return.</h3>
+            <p>Every run leaves <b>stardust</b>. Spend it in the Constellation to permanently sharpen your light. Death is a fertilizer.</p>
+          </article>
+          <article class="how-card controls-card">
+            <h3>Controls</h3>
+            <div class="keyrow"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>move</span></div>
+            <div class="keyrow"><kbd>MOUSE</kbd><span>aim</span><kbd>LMB</kbd><span>fire</span></div>
+            <div class="keyrow"><kbd>SPACE</kbd><span>dash</span><kbd>RMB</kbd><span>nova</span></div>
+            <div class="keyrow"><kbd>ESC</kbd><span>pause</span><kbd>M</kbd><span>mute music</span></div>
+            <p class="small">On touch screens: drag the left side to move, right side to aim and fire. Nova and dash buttons appear below.</p>
+          </article>
+          <article class="how-card">
+            <div class="how-icon"><svg><use href="#i-eye"/></svg></div>
+            <h3>Field notes</h3>
+            <ul class="field-notes">
+              <li>Motes drift home to you. Keep fighting; you will not lose your harvest.</li>
+              <li>Bosses telegraph. Red lines are promises, not warnings.</li>
+              <li>Save your Nova for the moment the screen blooms with fire.</li>
+              <li>Every run, however short, feeds the next.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="how-foot">
+          <p class="quote">“The dark is not empty. It is <em>patient</em>.”</p>
+          <button id="btnHowBack" class="btn primary">I UNDERSTAND <em>↗</em></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-levelup" class="screen overlay">
+      <div class="levelup-wrap">
+        <header class="levelup-head">
+          <div class="eyebrow" id="levelupKicker">LEVEL 2</div>
+          <h2>CHOOSE A BLESSING</h2>
+          <p class="levelup-sub">The garden offers three doors.</p>
+        </header>
+        <div id="upgradeCards" class="upgrade-grid"></div>
+        <div class="levelup-foot">
+          <span class="key-hint">PRESS <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span>
+          <button id="btnReroll" class="btn small">REROLL <b id="rerollCount">0</b></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-pause" class="screen overlay">
+      <div class="pause-wrap">
+        <div class="eyebrow">SUSPENDED</div>
+        <h2 class="serif-title">stillness</h2>
+        <div class="pause-build-head">VESSEL · <b id="pauseWeapon">PULSAR</b></div>
+        <div id="pauseBuild" class="pause-build"></div>
+        <div class="pause-menu">
+          <button id="btnResume" class="btn primary">RESUME</button>
+          <button id="btnRestartPause" class="btn">RESTART RUN</button>
+          <button id="btnAbandon" class="btn danger">ABANDON RUN</button>
+        </div>
+        <div class="settings-row">
+          <button id="btnMusicPause" class="icon-btn" title="Toggle music"><svg><use href="#i-music"/></svg><span>MUSIC</span></button>
+          <button id="btnSfxPause" class="icon-btn" title="Toggle sound effects"><svg><use href="#i-sound"/></svg><span>SOUND</span></button>
+          <button id="btnShakePause" class="icon-btn" title="Toggle screen shake"><svg><use href="#i-shake"/></svg><span>SHAKE</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-gameover" class="screen overlay">
+      <div class="gameover-wrap">
+        <div class="eyebrow">THE GARDEN REMEMBERS</div>
+        <h2 class="death-title">YOU FELL</h2>
+        <p class="death-line" id="deathLine">The dark leans closer.</p>
+        <div class="stats-grid" id="deathStats"></div>
+        <div class="dust-earned"><span>✦</span> +<b id="dustEarned">0</b> STARDUST</div>
+        <div class="build-recap" id="buildRecap"></div>
+        <div class="new-best hidden" id="newBest">NEW BEST</div>
+        <div class="gameover-actions">
+          <button id="btnAgain" class="btn primary"><span>RISE AGAIN</span><em>R</em></button>
+          <button id="btnMetaAfter" class="btn">CONSTELLATION</button>
+          <button id="btnTitleAfter" class="btn">TITLE</button>
+        </div>
+        <div class="seed-line">SEED <b id="runSeed"></b><button id="btnCopySeed">COPY</button></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="fatal" class="fatal hidden"></div>
+</div>
+
+<svg class="svg-defs" aria-hidden="true">
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l1.7 6.8L21 12l-7.3 3.2L12 22l-1.7-6.8L3 12l7.3-3.2L12 2z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h18"/></symbol>
+  <symbol id="i-pierce" viewBox="0 0 24 24"><path d="M3 12h18M15 6l6 6-6 6M4 7v10"/></symbol>
+  <symbol id="i-magnet" viewBox="0 0 24 24"><path d="M5 3v8a7 7 0 0 0 14 0V3h-4v8a3 3 0 0 1-6 0V3H5z"/><path d="M5 7h4M15 7h4"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21S3 14.8 3 8.8A4.8 4.8 0 0 1 12 5a4.8 4.8 0 0 1 9 3.8C21 14.8 12 21 12 21z"/></symbol>
+  <symbol id="i-dash" viewBox="0 0 24 24"><path d="M4 6l7 6-7 6M12 6l7 6-7 6"/></symbol>
+  <symbol id="i-twin" viewBox="0 0 24 24"><path d="M4 20L11 4M13 20L20 4M8 12h9"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></symbol>
+  <symbol id="i-skull" viewBox="0 0 24 24"><path d="M5 11a7 7 0 1 1 14 0c0 2-1 3-2 4v3H7v-3c-1-1-2-2-2-4z"/><circle cx="9" cy="11" r="1.3"/><circle cx="15" cy="11" r="1.3"/><path d="M9 18v3M15 18v3M10 21h4"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13z"/></symbol>
+  <symbol id="i-bounce" viewBox="0 0 24 24"><path d="M3 19L9 5h6l6 14M6 13h12"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 12h4l2-5 4 10 2-5h4"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2c1 5 6 6 6 11a6 6 0 0 1-12 0c0-2 1-4 2-5 0 2 1 3 2 3 0-4 1-6 2-9z"/></symbol>
+  <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 2v20M4 7l16 10M20 7L4 17M9 4l3 3 3-3M9 20l3-3 3 3M4 11l4 1-1-4M20 13l-4-1 1 4M4 13l4-1-1 4M20 11l-4 1 1-4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z"/><path d="M9 12l2 2 4-5"/></symbol>
+  <symbol id="i-orbit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)"/><circle cx="20" cy="8" r="1.5"/></symbol>
+  <symbol id="i-nova" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5M4.9 4.9L8.4 8.4M15.6 15.6l3.5 3.5M19.1 4.9l-3.5 3.5M8.4 15.6l-3.5 3.5"/></symbol>
+  <symbol id="i-blade" viewBox="0 0 24 24"><path d="M21 3L9 15M21 3l-3 9-6-6 9-3zM3 21l4-4M3 21l1-5 4 4-5 1z"/></symbol>
+  <symbol id="i-prism" viewBox="0 0 24 24"><path d="M12 3l9 17H3l9-17z"/><path d="M12 3v17M12 12H5M12 12h7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v7l4 2"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 7l4 9h10l4-9-6 4-3-6-3 6-6-4z"/><path d="M7 20h10"/></symbol>
+  <symbol id="i-gem" viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 12L2 9l4-6z"/><path d="M2 9h20M8 3l4 18 4-18"/></symbol>
+  <symbol id="i-heal" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18.5" r="3"/><circle cx="17.5" cy="16.5" r="3"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></symbol>
+  <symbol id="i-shake" viewBox="0 0 24 24"><path d="M3 8v8M21 8v8M7 5l-2 3v8l2 3M17 5l2 3v8l-2 3M10 9v6M14 9v6"/></symbol>
+  <symbol id="i-pulsar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M19 5l-4 4M9 15l-4 4"/></symbol>
+  <symbol id="i-lance" viewBox="0 0 24 24"><path d="M3 21L21 3M13 3h8v8M7 13l4 4"/></symbol>
+  <symbol id="i-scatter" viewBox="0 0 24 24"><path d="M4 20L14 10M4 20l8-2M4 20l2-8M14 10l3-6M14 10l7 1M14 10l-1 7"/></symbol>
+  <symbol id="i-halo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></symbol>
+</svg>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
