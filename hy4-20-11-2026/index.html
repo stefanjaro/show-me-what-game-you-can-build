@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05060f">
+<title>VOIDBLOOM — The Last Light</title>
+<style>
+:root{
+  --bg:#05060f;
+  --cyan:#5ef2ff;
+  --mag:#ff6ad5;
+  --gold:#ffd76a;
+  --violet:#b28bff;
+  --ink:#e9f2ff;
+  --dim:#8a94b8;
+  --panel:rgba(12,16,34,.72);
+  --edge:rgba(120,160,255,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;cursor:crosshair}
+#ui{position:fixed;inset:0;z-index:2;pointer-events:none}
+.hidden{display:none!important}
+
+.scan{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.35;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;inset:0;font-variant-numeric:tabular-nums}
+.hud-tl{position:absolute;top:14px;left:16px;min-width:250px}
+.bar{position:relative;height:16px;border-radius:9px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);overflow:hidden;box-shadow:0 0 18px rgba(0,0,0,.4) inset}
+.bar>i{position:absolute;inset:0;display:block;border-radius:9px;transition:width .12s linear}
+#hpFill{background:linear-gradient(90deg,#ff4d6d,#ff8a5b);box-shadow:0 0 14px #ff4d6d}
+#hpText{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;letter-spacing:1px;text-shadow:0 1px 3px #000}
+.xpwrap{margin-top:6px}
+#xpBar{height:9px}
+#xpFill{background:linear-gradient(90deg,#5ef2ff,#8affc1);box-shadow:0 0 12px #5ef2ff}
+.hud-meta{margin-top:8px;font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--dim)}
+.hud-meta b{color:var(--cyan)}
+.hud-meta .ph{color:var(--violet)}
+
+#bossWrap{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:min(560px,70vw);text-align:center}
+#bossName{font-size:12px;letter-spacing:4px;font-weight:800;color:#ff8aa0;text-shadow:0 0 12px #ff2d55;margin-bottom:6px}
+#bossBar{height:12px;border-color:rgba(255,80,110,.4)}
+#bossFill{background:linear-gradient(90deg,#ff2d55,#ffb36a);box-shadow:0 0 14px #ff2d55}
+
+.hud-tr{position:absolute;top:14px;right:16px;text-align:right;min-width:200px}
+.stat{font-size:12px;letter-spacing:1.5px;font-weight:700;color:var(--dim)}
+.stat b{color:var(--ink);font-size:15px}
+.combo{margin-top:10px}
+.combo .lab{font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:800;text-shadow:0 0 10px rgba(255,215,106,.5)}
+.combo .lab span{font-size:16px}
+.cbar{height:6px;margin-top:3px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+.cbar>i{display:block;height:100%;background:linear-gradient(90deg,#ffd76a,#ff7a45);box-shadow:0 0 10px #ffd76a;transition:width .1s linear}
+.od{margin-top:12px}
+.od .lab{font-size:11px;letter-spacing:2px;font-weight:800;color:var(--cyan)}
+.od.ready .lab{color:#fff;text-shadow:0 0 14px var(--cyan);animation:pulse .7s infinite alternate}
+.obar{height:11px;margin-top:4px;background:rgba(255,255,255,.06);border:1px solid rgba(94,242,255,.25);border-radius:7px;overflow:hidden}
+.obar>i{display:block;height:100%;background:linear-gradient(90deg,#2b7bff,#5ef2ff,#b9fff0);box-shadow:0 0 16px #5ef2ff;transition:width .1s linear}
+@keyframes pulse{from{opacity:.65}to{opacity:1}}
+
+.weapons{position:absolute;left:16px;bottom:14px;display:flex;gap:7px;flex-wrap:wrap;max-width:46vw}
+.wchip{position:relative;width:40px;height:40px;border-radius:11px;background:rgba(10,14,30,.7);
+  border:1px solid var(--edge);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;letter-spacing:.5px;color:#fff;overflow:hidden;
+  box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.wchip .lvl{position:absolute;bottom:0;right:0;font-size:9px;background:rgba(0,0,0,.6);padding:0 3px;border-radius:4px 0 0 0;color:var(--gold)}
+.wchip.evo{border-color:var(--gold);box-shadow:0 0 14px rgba(255,215,106,.5)}
+.passives{position:absolute;right:16px;bottom:14px;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:40vw}
+.pchip{width:26px;height:26px;border-radius:7px;background:rgba(10,14,30,.7);border:1px solid var(--edge);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--dim)}
+.pchip b{color:#fff}
+
+#novaBtn{position:absolute;right:18px;bottom:90px;width:92px;height:92px;border-radius:50%;
+  background:radial-gradient(circle,rgba(94,242,255,.22),rgba(10,14,30,.7));border:2px solid var(--cyan);
+  color:#fff;font-weight:900;letter-spacing:2px;font-size:13px;pointer-events:auto;display:none;
+  box-shadow:0 0 26px rgba(94,242,255,.35)}
+#novaBtn.ready{animation:pulse .6s infinite alternate;box-shadow:0 0 40px rgba(94,242,255,.8)}
+#novaBtn:active{transform:scale(.94)}
+
+#warn{position:absolute;top:30%;left:50%;transform:translateX(-50%);font-size:clamp(18px,4vw,40px);
+  font-weight:900;letter-spacing:8px;color:#fff;text-shadow:0 0 24px currentColor;opacity:0;
+  transition:opacity .3s;text-align:center;white-space:nowrap}
+
+#toasts{position:absolute;top:80px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{padding:9px 18px;border-radius:30px;background:rgba(10,14,30,.85);border:1px solid var(--gold);
+  font-size:12px;letter-spacing:1.5px;font-weight:700;color:var(--gold);box-shadow:0 0 24px rgba(255,215,106,.25);
+  animation:toastIn .35s ease both}
+.toast small{display:block;color:var(--ink);font-size:11px;letter-spacing:1px;margin-top:2px;font-weight:600}
+@keyframes toastIn{from{opacity:0;transform:translateY(-14px) scale(.9)}to{opacity:1;transform:none}}
+
+/* ---------- Screens ---------- */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;padding:20px;overflow:auto}
+.screen::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(8,10,26,.35),rgba(3,4,12,.86));backdrop-filter:blur(3px)}
+.panel{position:relative;width:min(920px,96vw);max-height:92vh;overflow:auto;padding:30px 34px;
+  background:var(--panel);border:1px solid var(--edge);border-radius:20px;
+  box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 60px rgba(80,120,255,.06) inset;text-align:center}
+.panel::-webkit-scrollbar{width:8px}.panel::-webkit-scrollbar-thumb{background:rgba(120,160,255,.25);border-radius:8px}
+
+.brand{font-size:clamp(46px,10vw,108px);font-weight:900;letter-spacing:.12em;line-height:.95;
+  background:linear-gradient(100deg,#5ef2ff,#b28bff 40%,#ff6ad5 70%,#ffd76a);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(120,160,255,.35));animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.tag{font-size:13px;letter-spacing:9px;color:var(--dim);font-weight:700;margin-top:6px;text-transform:uppercase}
+.lede{max-width:620px;margin:20px auto 8px;font-size:15px;line-height:1.7;color:#b9c6e6}
+.lede em{color:var(--cyan);font-style:normal}
+.best{margin:14px 0 4px;font-size:12px;letter-spacing:2px;color:var(--gold);font-weight:700}
+.btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+button.btn{pointer-events:auto;cursor:pointer;font-family:inherit;font-weight:800;letter-spacing:2px;font-size:13px;
+  padding:14px 26px;border-radius:12px;color:var(--ink);background:rgba(20,26,52,.7);
+  border:1px solid rgba(120,160,255,.3);transition:.18s;text-transform:uppercase}
+button.btn:hover{transform:translateY(-2px);border-color:var(--cyan);color:#fff;box-shadow:0 8px 26px rgba(94,242,255,.22)}
+button.btn:active{transform:translateY(0)}
+button.btn.primary{background:linear-gradient(100deg,rgba(94,242,255,.22),rgba(178,139,255,.22));
+  border-color:var(--cyan);color:#fff;box-shadow:0 0 26px rgba(94,242,255,.25);font-size:15px;padding:16px 40px}
+button.btn.primary:hover{box-shadow:0 0 40px rgba(94,242,255,.5)}
+button.btn.gold{border-color:var(--gold);color:var(--gold)}
+button.btn.small{padding:9px 16px;font-size:11px;letter-spacing:1px}
+button.btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.hint{margin-top:22px;font-size:11px;letter-spacing:2px;color:#5c668c;line-height:1.9}
+.hint kbd{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:1px 7px;font-family:inherit;color:var(--cyan);font-size:11px}
+
+h2.title{font-size:24px;letter-spacing:6px;font-weight:900;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:12px;letter-spacing:2px;color:var(--dim);margin-top:6px}
+.rule{height:1px;background:linear-gradient(90deg,transparent,var(--edge),transparent);margin:20px 0}
+
+/* level up cards */
+.cards{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.card{pointer-events:auto;cursor:pointer;width:210px;min-height:220px;border-radius:16px;padding:18px 16px;
+  background:linear-gradient(180deg,rgba(22,28,56,.9),rgba(10,13,30,.9));border:1px solid var(--edge);
+  display:flex;flex-direction:column;align-items:center;transition:.18s;position:relative;overflow:hidden}
+.card:hover{transform:translateY(-8px) scale(1.02);border-color:var(--c);box-shadow:0 16px 44px rgba(0,0,0,.6),0 0 30px var(--c)}
+.card .ic{width:64px;height:64px;border-radius:18px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:900;color:#05060f;background:var(--c);box-shadow:0 0 28px var(--c)}
+.card .nm{font-size:13px;letter-spacing:2px;font-weight:900;text-transform:uppercase;color:#fff}
+.card .tp{font-size:10px;letter-spacing:2px;color:var(--c);margin-top:5px;font-weight:800}
+.card .ds{font-size:12px;line-height:1.6;color:#9aa8cc;margin-top:12px}
+.card .lv{margin-top:auto;padding-top:12px;font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800}
+.card.evo{border-color:var(--gold);background:linear-gradient(180deg,rgba(60,44,10,.6),rgba(20,14,4,.9))}
+.card.evo .ic{background:linear-gradient(135deg,#ffd76a,#ff8a4c);box-shadow:0 0 34px #ffd76a}
+.reroll{margin-top:20px;font-size:11px;letter-spacing:2px;color:var(--dim)}
+
+/* shop / characters / achievements lists */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:18px;text-align:left}
+.tile{pointer-events:auto;cursor:pointer;border:1px solid var(--edge);border-radius:13px;padding:14px;
+  background:rgba(14,18,40,.7);transition:.16s;position:relative}
+.tile:hover{border-color:var(--cyan);transform:translateY(-3px)}
+.tile.locked{opacity:.5}
+.tile.sel{border-color:var(--gold);box-shadow:0 0 22px rgba(255,215,106,.25)}
+.tile .th{display:flex;align-items:center;gap:10px}
+.tile .dot{width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#05060f}
+.tile .tn{font-size:13px;letter-spacing:1px;font-weight:800;color:#fff}
+.tile .td{font-size:11px;line-height:1.55;color:#97a4c8;margin-top:8px}
+.tile .cost{margin-top:10px;font-size:11px;font-weight:800;letter-spacing:1px;color:var(--gold)}
+.tile .lvls{display:flex;gap:3px;margin-top:9px}
+.tile .lvls i{width:12px;height:6px;border-radius:2px;background:rgba(255,255,255,.12)}
+.tile .lvls i.on{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.dust{display:inline-block;font-size:13px;letter-spacing:2px;font-weight:800;color:var(--gold)}
+.achrow{display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:10px;background:rgba(14,18,40,.6);border:1px solid var(--edge);text-align:left}
+.achrow.done{border-color:rgba(255,215,106,.4)}
+.achrow .mark{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;background:rgba(255,255,255,.07);color:#556}
+.achrow.done .mark{background:var(--gold);color:#05060f;box-shadow:0 0 14px var(--gold)}
+.achrow .an{font-size:12px;font-weight:800;letter-spacing:1px;color:#fff}
+.achrow .ad{font-size:11px;color:var(--dim);margin-top:2px}
+.achrow .ar{margin-left:auto;font-size:11px;color:var(--gold);font-weight:800;white-space:nowrap}
+
+.stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.statbox{min-width:110px}
+.statbox .v{font-size:30px;font-weight:900;color:var(--cyan);text-shadow:0 0 20px rgba(94,242,255,.4)}
+.statbox .k{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:2px;text-transform:uppercase}
+.go-title{font-size:clamp(32px,7vw,64px);font-weight:900;letter-spacing:.1em;
+  background:linear-gradient(90deg,#ff5c7c,#ffb36a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,80,110,.35))}
+.win-title{background:linear-gradient(90deg,#5ef2ff,#ffd76a,#ff6ad5);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 26px rgba(120,200,255,.4))}
+.help-list{text-align:left;max-width:640px;margin:0 auto;font-size:13px;line-height:2;color:#aab6d8}
+.help-list b{color:var(--cyan)}
+.help-list .row{display:flex;gap:14px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.help-list .row span:first-child{min-width:130px;color:var(--gold);font-weight:800;letter-spacing:1px;font-size:11px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;letter-spacing:1px}
+.setrow input[type=range]{accent-color:var(--cyan);width:180px}
+.foot{margin-top:18px;font-size:10px;letter-spacing:3px;color:#46507a}
+.corner{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:3px;color:#333c60;z-index:3;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="scan"></div>
+
+<div id="ui">
+  <div id="hud" class="hidden">
+    <div class="hud-tl">
+      <div class="bar"><i id="hpFill" style="width:100%"></i><span id="hpText">100 / 100</span></div>
+      <div class="bar xpwrap" id="xpBar"><i id="xpFill" style="width:0%"></i></div>
+      <div class="hud-meta"><b id="lvlText">LV 1</b> &nbsp;·&nbsp; <span id="timeText">0:00</span> &nbsp;·&nbsp; <span class="ph" id="phaseText">THE AWAKENING</span></div>
+    </div>
+    <div id="bossWrap" class="hidden"><div id="bossName">THE DEVOURER</div><div class="bar" id="bossBar"><i id="bossFill" style="width:100%"></i></div></div>
+    <div class="hud-tr">
+      <div class="stat">KILLS <b id="killsText">0</b></div>
+      <div class="stat">SCORE <b id="scoreText">0</b></div>
+      <div class="combo"><div class="lab">COMBO <span id="comboMult">x1.0</span></div><div class="cbar"><i id="comboFill" style="width:0%"></i></div></div>
+      <div class="od" id="odBox"><div class="lab">NOVA · [SPACE]</div><div class="obar"><i id="odFill" style="width:0%"></i></div></div>
+    </div>
+    <div class="weapons" id="weaponBar"></div>
+    <div class="passives" id="passiveBar"></div>
+    <button id="novaBtn">NOVA</button>
+    <div id="warn"></div>
+    <div id="toasts"></div>
+  </div>
+
+  <div class="screen" id="titleScreen">
+    <div class="panel">
+      <div class="brand">VOIDBLOOM</div>
+      <div class="tag">The Last Light</div>
+      <p class="lede">You are the final spark in an endless, hungry dark. Every foe you erase feeds your light. <em>Grazing death</em> charges your NOVA — a screen-clearing burst of slow-motion fury. Forge impossible weapon fusions. Outlast the Devourer. Become the bloom.</p>
+      <div class="best" id="titleBest"></div>
+      <div class="btnrow">
+        <button class="btn primary" id="btnPlay">ENTER THE VOID</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="btnChar">PILOTS</button>
+        <button class="btn" id="btnShop">ASCEND</button>
+        <button class="btn" id="btnAch">FEATS</button>
+        <button class="btn" id="btnHelp">HOW TO PLAY</button>
+        <button class="btn" id="btnSet">SETTINGS</button>
+      </div>
+      <div class="hint">
+        <kbd>WASD</kbd> / <kbd>ARROWS</kbd> or drag to move &nbsp;·&nbsp; <kbd>SPACE</kbd> NOVA &nbsp;·&nbsp; <kbd>SHIFT</kbd> DASH &nbsp;·&nbsp; <kbd>P</kbd> PAUSE<br>
+        Auto-attacking. Level up to choose your build. Headphones recommended.
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="levelupScreen">
+    <div class="panel">
+      <h2 class="title">YOUR LIGHT GROWS</h2>
+      <div class="sub" id="luSub">CHOOSE ONE · LEVEL 2</div>
+      <div class="cards" id="luCards"></div>
+      <div class="reroll">REROLLS LEFT: <span id="rrCount">0</span> <button class="btn small gold" id="btnReroll">REROLL (R)</button></div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="pauseScreen">
+    <div class="panel" style="max-width:460px">
+      <h2 class="title">PAUSED</h2>
+      <div class="sub">The void waits. Breathing is allowed.</div>
+      <div class="btnrow">
+        <button class="btn primary" id="btnResume">RESUME</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="btnPauseSet">SETTINGS</button>
+        <button class="btn" id="btnPauseHelp">HOW TO PLAY</button>
+        <button class="btn gold" id="btnQuit">ABANDON RUN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="gameoverScreen">
+    <div class="panel" style="max-width:620px">
+      <div class="go-title" id="goTitle">CONSUMED</div>
+      <div class="sub" id="goSub">The dark took you. It always wants more.</div>
+      <div class="stats" id="goStats"></div>
+      <div class="dust" id="goDust"></div>
+      <div class="btnrow">
+        <button class="btn primary" id="btnAgain">ONE MORE RUN</button>
+        <button class="btn" id="btnGoMenu">MAIN MENU</button>
+      </div>
+      <div class="hint" id="goUnlocks"></div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="shopScreen">
+    <div class="panel">
+      <h2 class="title">ASCEND</h2>
+      <div class="sub">Spend STARDUST on permanent power. It survives every death.</div>
+      <div class="best">STARDUST: <span class="dust" id="shopDust">0</span></div>
+      <div class="grid" id="shopGrid"></div>
+      <div class="btnrow"><button class="btn" id="btnShopBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="charScreen">
+    <div class="panel">
+      <h2 class="title">CHOOSE YOUR PILOT</h2>
+      <div class="sub">Each begins the bloom with a different gift.</div>
+      <div class="grid" id="charGrid"></div>
+      <div class="btnrow"><button class="btn" id="btnCharBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="achScreen">
+    <div class="panel">
+      <h2 class="title">FEATS OF LIGHT</h2>
+      <div class="sub">Deeds echo beyond death. Earn stardust & unlock pilots.</div>
+      <div id="achList" style="display:flex;flex-direction:column;gap:8px;margin-top:16px;text-align:left"></div>
+      <div class="btnrow"><button class="btn" id="btnAchBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="helpScreen">
+    <div class="panel" style="max-width:680px">
+      <h2 class="title">HOW TO BLOOM</h2>
+      <div class="help-list" id="helpList"></div>
+      <div class="btnrow"><button class="btn" id="btnHelpBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="settingsScreen">
+    <div class="panel" style="max-width:460px">
+      <h2 class="title">SETTINGS</h2>
+      <div class="setrow"><span>MUSIC</span><input type="range" id="setMusic" min="0" max="100" value="60"></div>
+      <div class="setrow"><span>SOUND FX</span><input type="range" id="setSfx" min="0" max="100" value="75"></div>
+      <div class="setrow"><span>SCREEN SHAKE</span><input type="checkbox" id="setShake" checked></div>
+      <div class="setrow"><span>REDUCED MOTION</span><input type="checkbox" id="setReduced"></div>
+      <div class="btnrow"><button class="btn" id="btnSetBack">BACK</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="corner">VOIDBLOOM // A HY4 CREATION</div>
+<script src="data.js" defer></script>
+<script src="engine.js" defer></script>
+<script src="combat.js" defer></script>
+<script src="flow.js" defer></script>
+<script src="render.js" defer></script>
+<script src="ui.js" defer></script>
+</body>
+</html>
