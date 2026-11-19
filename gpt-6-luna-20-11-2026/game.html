@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#090b12">
+    <meta name="description" content="Draw your spells. Outwit the dark. Inkshift is a fast, spell-drawing arcade roguelite.">
+    <title>INKSHIFT — Draw the dark back</title>
+    <link rel="stylesheet" href="game.css">
+  </head>
+  <body>
+    <main id="game" aria-label="Inkshift spell-drawing survival game">
+      <canvas id="world" aria-label="Game arena"></canvas>
+
+      <div class="grain" aria-hidden="true"></div>
+
+      <section id="home-screen" class="screen home-screen" aria-labelledby="game-title">
+        <div class="home-topline">
+          <div class="brand-lockup"><span class="brand-mark">✳</span> A LITTLE GAME ABOUT BIG MAGIC</div>
+          <button id="home-sound" class="quiet-button" type="button" aria-label="Toggle sound">SOUND <span>ON</span></button>
+        </div>
+
+        <div class="home-copy">
+          <div class="eyebrow"><span class="live-dot"></span> THE NIGHT SHIFT STARTS NOW</div>
+          <h1 id="game-title">INK<span>SHIFT</span></h1>
+          <p class="home-tagline">The dark is full of monsters.<br><em>Good thing you brought a pen.</em></p>
+          <p class="home-description">Dodge a living nightmare, then draw the spell that ends it. Every stroke becomes a weapon. Every run writes a different story.</p>
+          <button id="start-button" class="primary-button" type="button">
+            <span>BEGIN YOUR SHIFT</span><span class="button-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button id="daily-button" class="daily-button" type="button">TODAY'S DRAFT <span id="daily-date"></span><span aria-hidden="true">↗</span></button>
+          <div class="mobile-home-note">LEFT THUMB: MOVE <span>·</span> RIGHT THUMB: DRAW <span>·</span> DASH BUTTON: ESCAPE</div>
+          <div class="home-footnote">NO TUTORIAL. NO MERCY. JUST YOU &amp; THE INK.</div>
+        </div>
+
+        <div class="home-side-note" aria-hidden="true"><span>FIELD NOTES / 001</span><i></i><span>KEEP MOVING</span></div>
+        <div class="home-bottom">
+          <div class="control-legend">
+            <div class="legend-item"><span class="key-cluster"><b>W</b><b>A</b><b>S</b><b>D</b></span><span>MOVE</span></div>
+            <div class="legend-item"><span class="draw-symbol">↗</span><span>DRAW &amp; RELEASE TO CAST</span></div>
+            <div class="legend-item"><span class="keycap">SHIFT</span><span>DASH</span></div>
+          </div>
+          <div id="home-record" class="home-record">FIRST NIGHT? MAKE IT LEGENDARY.</div>
+        </div>
+      </section>
+
+      <section id="hud" class="hud hidden" aria-label="Game status">
+        <header class="hud-top">
+          <div class="hud-brand"><span class="brand-mark">✳</span><span>INKSHIFT</span><span class="hud-divider">/</span><span class="hud-edition">NIGHT SHIFT</span></div>
+          <div class="run-stats">
+            <div class="stat-block"><span class="stat-label">TIME</span><strong id="timer">00:00</strong></div>
+            <div class="stat-block"><span class="stat-label">SCORE</span><strong id="score">000000</strong></div>
+            <div class="stat-block"><span class="stat-label">INKSLAIN</span><strong id="kill-count">0</strong></div>
+          </div>
+          <div class="hud-actions">
+            <button id="sound-button" class="icon-button" type="button" aria-label="Toggle sound" title="Toggle sound">♫</button>
+            <button id="pause-button" class="icon-button" type="button" aria-label="Pause" title="Pause">Ⅱ</button>
+          </div>
+        </header>
+
+        <div class="status-strip">
+          <div class="health-panel"><span class="status-icon health-icon">♥</span><div class="meter"><div id="health-fill" class="meter-fill health-fill"></div></div><span id="health-label" class="meter-label">100 / 100</span></div>
+          <div class="ink-panel"><span class="status-icon ink-icon">✳</span><div class="meter"><div id="ink-fill" class="meter-fill ink-fill"></div></div><span class="meter-label">INK</span></div>
+        </div>
+
+        <div id="boss-panel" class="boss-panel hidden" aria-live="polite">
+          <div class="boss-name-row"><span>THE REDACTOR</span><span id="boss-hp-label">100%</span></div>
+          <div class="meter boss-meter"><div id="boss-fill" class="meter-fill boss-fill"></div></div>
+        </div>
+
+        <div id="toast" class="toast" aria-live="polite"></div>
+        <div id="combo-display" class="combo-display" aria-live="polite"><strong id="combo-number">0</strong><span>INK STREAK</span></div>
+
+        <div class="bottom-hud">
+          <div class="spell-guide" aria-label="Draw a line for a lance, a loop for a nova, or a zigzag for a chain">
+            <div class="spell-guide-title">YOUR HANDWRITING IS <b>LETHAL</b></div>
+            <div class="spell-list">
+              <span><i class="spell-icon lance-icon">╱</i>LINE <small>LANCE</small></span>
+              <span><i class="spell-icon nova-icon">◯</i>LOOP <small>NOVA</small></span>
+              <span><i class="spell-icon chain-icon">ϟ</i>ZIGZAG <small>CHAIN</small></span>
+            </div>
+          </div>
+          <div class="level-panel">
+            <div class="level-heading"><span>LEVEL <b id="level-number">1</b></span><span id="xp-label">0 / 40 XP</span></div>
+            <div class="meter xp-meter"><div id="xp-fill" class="meter-fill xp-fill"></div></div>
+          </div>
+          <div class="dash-hint"><span class="keycap">SHIFT</span><span>DASH</span><i id="dash-ready" class="dash-ready"></i></div>
+        </div>
+
+        <div id="mobile-help" class="mobile-help" aria-hidden="true">LEFT THUMB: MOVE <span>·</span> RIGHT THUMB: DRAW</div>
+        <div id="mobile-pad" class="mobile-pad" aria-hidden="true"><span class="pad-arrows">✥</span><span>MOVE</span></div>
+        <button id="dash-touch" class="dash-touch" type="button" aria-label="Dash">DASH <span>↗</span></button>
+      </section>
+
+      <section id="level-screen" class="screen modal-screen hidden" aria-labelledby="level-title">
+        <div class="modal-kicker">A NEW PAGE TURNS</div>
+        <h2 id="level-title">Choose your <em>next move.</em></h2>
+        <p class="modal-subtitle">The night is adapting. So should you.</p>
+        <div id="upgrade-options" class="upgrade-options"></div>
+        <div class="modal-footnote">CLICK A CARD OR PRESS 1, 2, OR 3</div>
+      </section>
+
+      <section id="pause-screen" class="screen modal-screen pause-screen hidden" aria-labelledby="pause-title">
+        <div class="modal-kicker">CATCH YOUR BREATH</div>
+        <h2 id="pause-title">The night can <em>wait.</em></h2>
+        <p class="modal-subtitle">Your ink is still wet.</p>
+        <button id="resume-button" class="primary-button" type="button"><span>BACK TO IT</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+        <div class="modal-footnote">PRESS ESC OR P TO RESUME</div>
+      </section>
+
+      <section id="over-screen" class="screen modal-screen over-screen hidden" aria-labelledby="over-title">
+        <div class="modal-kicker">THE PAGE GOES DARK</div>
+        <h2 id="over-title">One hell of a <em>story.</em></h2>
+        <p id="over-quip" class="modal-subtitle">The night got the last word. This time.</p>
+        <div class="run-recap">
+          <div><span>TIME HELD</span><strong id="final-time">00:00</strong></div>
+          <div><span>THINGS UNWRITTEN</span><strong id="final-kills">0</strong></div>
+          <div><span>FINAL SCORE</span><strong id="final-score">0</strong></div>
+        </div>
+        <div id="new-record" class="new-record hidden">✦ NEW PERSONAL BEST ✦</div>
+        <button id="again-button" class="primary-button" type="button"><span>WRITE ANOTHER ENDING</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+        <div class="modal-footnote">YOUR NEXT RUN WILL BE DIFFERENT</div>
+      </section>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
