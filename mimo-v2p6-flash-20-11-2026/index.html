@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>POLARIS — The Last Star</title>
+<meta name="description" content="You are the last star. Switch polarity, swallow the void's bullets, and detonate. POLARIS is a neon survival roguelite about holding onto the light.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%232de1ff'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23ff2d78' stroke-width='2' stroke-dasharray='6 5'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="ui">
+
+  <!-- ============ TITLE ============ -->
+  <section id="screen-title" class="screen">
+    <div class="title-wrap">
+      <div class="title-eyebrow">A SURVIVAL ROGUELITE OF LIGHT &amp; POLARITY</div>
+      <h1 class="game-title" data-text="POLARIS">POLARIS</h1>
+      <div class="game-sub">THE LAST STAR</div>
+      <div class="title-rule"><span></span><i>✦</i><span></span></div>
+      <p class="title-blurb">
+        The Void has learned to shoot in <b class="c-crimson">crimson</b> and <b class="c-cyan">cyan</b>.
+        So have you. <em>Become the colour that swallows theirs.</em>
+      </p>
+      <nav class="menu">
+        <button class="btn btn-primary" id="btn-start"><span>IGNITE</span><small>begin a run</small></button>
+        <button class="btn" id="btn-starmap"><span>STAR MAP</span><small id="stardust-label">0 stardust</small></button>
+        <button class="btn" id="btn-howto"><span>HOW TO SURVIVE</span><small>controls &amp; doctrine</small></button>
+      </nav>
+      <div class="title-foot">
+        <button class="ghost-btn" id="btn-mute">♪ SOUND: ON</button>
+        <span class="dot">·</span>
+        <span id="best-record">no record yet</span>
+      </div>
+    </div>
+    <div class="title-hint">press <kbd>ENTER</kbd> to ignite</div>
+  </section>
+
+  <!-- ============ HOW TO ============ -->
+  <section id="screen-howto" class="screen hidden">
+    <div class="panel">
+      <h2 class="panel-title">HOW TO SURVIVE</h2>
+      <div class="howto-grid">
+        <div class="how-card">
+          <div class="how-key">W A S D<span>·</span>ARROWS</div>
+          <div class="how-name">DRIFT</div>
+          <p>Move. Your gun fires itself at whatever your cursor hates.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-key">MOUSE</div>
+          <div class="how-name">AIM</div>
+          <p>The crosshair decides where the light goes.</p>
+        </div>
+        <div class="how-card how-card-crimson">
+          <div class="how-key">RIGHT CLICK<span>·</span>Q</div>
+          <div class="how-name">SHIFT POLARITY</div>
+          <p>You are <b>crimson</b> or <b>cyan</b>. Bullets of your colour pass through you — and are <b>devoured</b>, feeding your Nova. Bullets of the other colour <b>hurt</b>.</p>
+        </div>
+        <div class="how-card how-card-cyan">
+          <div class="how-key">CLICK ENEMIES WITH THE RIGHT COLOUR</div>
+          <div class="how-name">SHATTER</div>
+          <p>Your shots only pierce enemies of the <b>opposite</b> colour. Match wrong, and they shrug it off. Read the swarm. Switch. Weave.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-key">SPACE</div>
+          <div class="how-name">PHASE DASH</div>
+          <p>Short burst of pure invulnerability. Through walls of lead, not through bodies.</p>
+        </div>
+        <div class="how-card how-card-gold">
+          <div class="how-key">E</div>
+          <div class="how-name">DETONATE NOVA</div>
+          <p>When the meter is full, spend it: a star dies so a thousand voidlings do too.</p>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <div class="doctrine">◈ Absorb the colour that matches you. Kill the colour that doesn't. ◈</div>
+        <button class="btn btn-primary" id="btn-howto-back"><span>UNDERSTOOD</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STAR MAP (meta progression) ============ -->
+  <section id="screen-starmap" class="screen hidden">
+    <div class="starmap-head">
+      <button class="ghost-btn" id="btn-starmap-back">← BACK</button>
+      <h2 class="panel-title">STAR MAP</h2>
+      <div class="stardust-count"><i>✦</i> <span id="stardust-value">0</span> STARDUST</div>
+    </div>
+    <div id="starmap-svg-wrap">
+      <svg id="starmap-svg" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="starmap-tip" id="starmap-tip">Hover a star to read its light. Click to ignite it.</div>
+  </section>
+
+  <!-- ============ LEVEL UP ============ -->
+  <div id="levelup" class="overlay hidden">
+    <div class="levelup-head">
+      <div class="levelup-star">✦</div>
+      <div class="levelup-title">THE LIGHT GROWS</div>
+      <div class="levelup-sub">choose one gift</div>
+    </div>
+    <div class="card-row" id="card-row"></div>
+    <div class="levelup-keys">click a card &nbsp;·&nbsp; <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="pause" class="overlay hidden">
+    <div class="pause-box">
+      <h2 class="panel-title">HELD BREATH</h2>
+      <div class="pause-stats" id="pause-stats"></div>
+      <nav class="menu menu-tight">
+        <button class="btn btn-primary" id="btn-resume"><span>RESUME</span></button>
+        <button class="btn" id="btn-quit"><span>ABANDON RUN</span></button>
+      </nav>
+      <div class="pause-keys"><kbd>P</kbd> / <kbd>ESC</kbd> to resume</div>
+    </div>
+  </div>
+
+  <!-- ============ END OF RUN ============ -->
+  <div id="endscreen" class="overlay hidden">
+    <div class="end-box">
+      <div class="end-eyebrow" id="end-eyebrow">THE VOID TAKES YOU</div>
+      <h2 class="end-title" id="end-title">EXTINGUISHED</h2>
+      <div class="end-score">
+        <div class="end-score-num" id="end-score">0</div>
+        <div class="end-score-label">RESONANCE</div>
+      </div>
+      <div class="end-grid" id="end-grid"></div>
+      <div class="end-unlock hidden" id="end-unlock"></div>
+      <div class="end-stardust">earned <b id="end-stardust">0</b> ✦ stardust</div>
+      <nav class="menu menu-tight">
+        <button class="btn btn-primary" id="btn-retry"><span>REIGNITE</span><small>another run</small></button>
+        <button class="btn" id="btn-tostarmap"><span>STAR MAP</span></button>
+        <button class="btn btn-quiet" id="btn-tomenu"><span>MAIN MENU</span></button>
+      </nav>
+      <div class="pause-keys">press <kbd>ENTER</kbd> to reignite</div>
+    </div>
+  </div>
+
+  <!-- ============ VICTORY ============ -->
+  <div id="victory" class="overlay hidden">
+    <div class="end-box end-box-win">
+      <div class="end-eyebrow win">THE VOID BREAKS</div>
+      <h2 class="end-title win" id="victory-title">DAWN</h2>
+      <p class="win-copy">Four heralds of the dark fall, and for one long moment the sky remembers what colour is. You held the line with a heartbeat of light.</p>
+      <div class="end-grid" id="victory-grid"></div>
+      <div class="end-stardust">earned <b id="victory-stardust">0</b> ✦ stardust</div>
+      <nav class="menu menu-tight">
+        <button class="btn btn-primary" id="btn-win-retry"><span>ASCEND AGAIN</span></button>
+        <button class="btn" id="btn-win-menu"><span>MAIN MENU</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ============ TOASTS / BANNERS ============ -->
+  <div id="banner" class="banner hidden"><span id="banner-text"></span></div>
+  <div id="toast-stack"></div>
+
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
