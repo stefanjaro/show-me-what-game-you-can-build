@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>GRAVEYARD SHIFT — a necromantic bullet-heaven</title>
+<meta name="description" content="You are the Necromancer. Raise every corpse that falls and turn the holy armies of Dawn against themselves in this 20-minute bullet-heaven.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20fill='%230d0b12'/%3E%3Ccircle%20cx='16'%20cy='14'%20r='9'%20fill='%23e9e6da'/%3E%3Ccircle%20cx='12.5'%20cy='13'%20r='2.4'%20fill='%230d0b12'/%3E%3Ccircle%20cx='19.5'%20cy='13'%20r='2.4'%20fill='%230d0b12'/%3E%3Ccircle%20cx='12.5'%20cy='13'%20r='0.9'%20fill='%236bff8f'/%3E%3Ccircle%20cx='19.5'%20cy='13'%20r='0.9'%20fill='%236bff8f'/%3E%3Crect%20x='12'%20y='21'%20width='8'%20height='3'%20rx='1.5'%20fill='%23e9e6da'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="fx-vignette"></div>
+
+<div id="hud" class="hidden">
+  <div id="xpwrap"><div id="xpfill"></div></div>
+  <div id="lvlbadge"><span id="lvltxt">LV 1</span></div>
+  <div id="timer">00:00</div>
+  <div id="hud-right">
+    <span id="killtxt">0 slain</span>
+    <span id="esstxt">0 essence</span>
+    <span id="mintxt">0 / 12</span>
+  </div>
+  <div id="bosswrap" class="hidden">
+    <div id="bossname">CHAMPION OF DAWN</div>
+    <div id="bossbar"><div id="bossfill"></div></div>
+  </div>
+  <div id="hpwrap">
+    <div id="hpfill"></div>
+    <div id="hptxt">100 / 100</div>
+  </div>
+  <div id="abwrap"><div id="abfill"></div><div id="abicon"></div></div>
+  <div id="abkey">SPACE — DANSE MACABRE</div>
+</div>
+
+<div id="banner" class="hidden"><div class="banner-t"></div><div class="banner-s"></div></div>
+<div id="announce" class="hidden"><div class="ann-t"></div><div class="ann-n"></div></div>
+<div id="toast"></div>
+
+<div id="scr-title" class="screen clear hidden">
+  <div class="logo">GRAVEYARD<br><b>SHIFT</b></div>
+  <div class="tagline">The dead don't stay buried. Tonight, they fight for you.</div>
+  <div class="ess-display" id="ess-title">0 ESSENCE</div>
+  <div class="menu-col">
+    <button class="btn primary" id="btn-play">DESCEND INTO THE GRAVEYARD</button>
+    <button class="btn" id="btn-altar">THE DARK ALTAR</button>
+    <button class="btn" id="btn-help">HOW TO SURVIVE THE NIGHT</button>
+  </div>
+  <div id="tstats"></div>
+  <div class="opts">
+    <button class="opt-btn" id="opt-music">MUSIC</button>
+    <button class="opt-btn" id="opt-sfx">SOUND</button>
+  </div>
+  <div class="credit">a necromantic bullet-heaven &middot; WASD to move &middot; every kill can be raised again</div>
+</div>
+
+<div id="scr-chars" class="screen hidden">
+  <h2>CHOOSE YOUR SOUL</h2>
+  <div class="sub">each binds the night differently</div>
+  <div id="char-cards"></div>
+  <div class="btn-row">
+    <button class="btn primary" id="btn-char-start">DESCEND</button>
+    <button class="btn" id="btn-char-back">BACK</button>
+  </div>
+</div>
+
+<div id="scr-altar" class="screen hidden">
+  <h2>THE DARK ALTAR</h2>
+  <div class="sub">spend essence on powers that survive death</div>
+  <div class="ess-display" id="altar-ess">0 ESSENCE</div>
+  <div id="altar-list"></div>
+  <button class="btn" id="btn-altar-back">BACK</button>
+</div>
+
+<div id="scr-help" class="screen hidden">
+  <h2>HOW TO SURVIVE THE NIGHT</h2>
+  <div class="help-col">
+    <h3>THE PACT</h3>
+    <p>Armies of the Order of Dawn descend to burn you. Survive until <b>20:00</b> and slay the <b>Seraph of Dawn</b> to claim the night. Weapons fire on their own — your only jobs are to move, to choose wisely, and to raise what falls.</p>
+    <h3>THE DEAD SERVE YOU</h3>
+    <p>Every foe that dies near you may rise again as a skeleton under your command. Grow the horde. Shield yourself with a wall of bones. Even Champions leave corpses worth taking.</p>
+    <h3>MOVEMENT</h3>
+    <ul>
+      <li><b>WASD / arrow keys</b> — move (hold the mouse to walk toward it, or use the touch joystick)</li>
+      <li><b>SPACE</b> — <b>Danse Macabre</b>: raise every corpse in sight and chill the living</li>
+      <li><b>P / ESC</b> — pause and review your build</li>
+      <li><b>1 / 2 / 3</b> — choose a dark pact when you level up &middot; <b>R</b> — reroll (if bought)</li>
+    </ul>
+    <h3>THE LONG GAME</h3>
+    <p>Souls level you up. Elites drop relic chests. Max a weapon and pair it with its kindred passive to unlock an <b>EVOLUTION</b>. Every run — win or lose — pays <b>essence</b> for the Dark Altar's permanent powers, and two more souls await your summons.</p>
+  </div>
+  <button class="btn" id="btn-help-back">BACK</button>
+</div>
+
+<div id="scr-levelup" class="screen hidden">
+  <h2>THE DARK PACT</h2>
+  <div class="sub">the night offers three bargains</div>
+  <div id="lv-cards"></div>
+  <div class="lv-bottom">
+    <button class="btn" id="btn-reroll">REROLL [R] &times;<b id="reroll-n">0</b></button>
+    <button class="btn" id="btn-skip">SKIP</button>
+  </div>
+</div>
+
+<div id="scr-chest" class="screen hidden">
+  <h2>RELIC OF THE ORDER</h2>
+  <div class="sub">its bearers no longer need it</div>
+  <div id="chest-card"></div>
+  <button class="btn primary" id="btn-chest-ok" style="margin-top:18px">CLAIM IT</button>
+</div>
+
+<div id="scr-pause" class="screen hidden">
+  <h2>THE NIGHT HOLDS ITS BREATH</h2>
+  <div class="sub">your bindings thus far</div>
+  <div id="pause-build"></div>
+  <div class="btn-row">
+    <button class="btn primary" id="btn-resume">RESUME</button>
+    <button class="btn danger" id="btn-abandon">ABANDON RUN</button>
+  </div>
+</div>
+
+<div id="scr-death" class="screen hidden">
+  <h2 class="big">THE GRAVE TAKES YOU</h2>
+  <div class="death-poem" id="death-title"></div>
+  <div class="stat-grid" id="death-stats"></div>
+  <div class="ess-tally" id="death-ess">+0 ESSENCE</div>
+  <div class="btn-row">
+    <button class="btn primary" id="btn-death-retry">RISE AGAIN</button>
+    <button class="btn" id="btn-death-altar">DARK ALTAR</button>
+    <button class="btn" id="btn-death-title">TITLE</button>
+  </div>
+</div>
+
+<div id="scr-win" class="screen hidden">
+  <h2 class="big">THE SERAPH FALLS</h2>
+  <div class="sub">the dawn broke — and you were still standing</div>
+  <div class="stat-grid" id="win-stats"></div>
+  <div class="ess-tally" id="win-ess">+0 ESSENCE</div>
+  <div class="btn-row">
+    <button class="btn primary" id="btn-endless">REIGN ETERNAL — ENDLESS</button>
+    <button class="btn" id="btn-win-title">TITLE</button>
+  </div>
+</div>
+
+<noscript>This grave requires JavaScript to open.</noscript>
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
