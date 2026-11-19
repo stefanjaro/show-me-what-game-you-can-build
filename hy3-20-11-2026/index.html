@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>INKBOUND — Draw. Bounce. Conquer.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div id="app">
+
+  <!-- MAIN MENU -->
+  <section id="menu" class="screen">
+    <div class="logo">
+      <h1 class="title">INK<span>BOUND</span></h1>
+      <p class="tagline">Draw your own destiny. One stroke at a time.</p>
+    </div>
+    <div class="menu-buttons">
+      <button class="btn btn-primary" data-act="play">PLAY</button>
+      <button class="btn" data-act="levels">LEVEL SELECT</button>
+      <button class="btn" data-act="how">HOW TO PLAY</button>
+      <button class="btn btn-ghost" data-act="toggle-audio" id="audioBtn">SOUND: ON</button>
+    </div>
+    <div class="footer-note">A physics puzzle sandbox by the HY3 engine</div>
+  </section>
+
+  <!-- LEVEL SELECT -->
+  <section id="levels" class="screen hidden">
+    <h2 class="screen-title">SELECT A REALM</h2>
+    <div id="levelGrid" class="level-grid"></div>
+    <button class="btn btn-back" data-act="menu">BACK</button>
+  </section>
+
+  <!-- HOW TO PLAY -->
+  <section id="how" class="screen hidden">
+    <h2 class="screen-title">HOW TO PLAY</h2>
+    <div class="how-card">
+      <p><b>Draw</b> with your mouse / finger to bend reality. Your glowing ink becomes solid.</p>
+      <p><b>Guide the orb</b> to the pulsing <span class="c-gold">star gate</span>. Gravity is not your enemy — it's your paintbrush.</p>
+      <p><b>Collect</b> <span class="c-cyan">cyan orbs</span> for a perfect score. Avoid the <span class="c-red">crimson hazards</span>.</p>
+      <p><b>Ink is limited.</b> Every line costs. Undo, erase, and redesign until it's beautiful.</p>
+      <p>Master <span class="c-mag">bounce pads</span>, <span class="c-cyan">wind fans</span>, <span class="c-gold">portals</span> and <span class="c-mag">drifting platforms</span>.</p>
+      <p class="keys">Keys — <kbd>R</kbd> restart · <kbd>U</kbd> undo · <kbd>C</kbd> clear · <kbd>E</kbd> erase · <kbd>Esc</kbd> menu</p>
+    </div>
+    <button class="btn btn-back" data-act="menu">BACK</button>
+  </section>
+
+  <!-- GAMEPLAY HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <button class="icon-btn" data-act="menu" title="Menu">‹</button>
+      <div class="level-name" id="hudLevelName">REALM 1</div>
+      <div class="ink-wrap" title="Ink remaining">
+        <div class="ink-bar"><div class="ink-fill" id="inkFill"></div></div>
+        <span class="ink-label">INK</span>
+      </div>
+      <div class="stars-hud" id="hudStars">✦ 0 / 0</div>
+      <div class="timer" id="hudTimer">0.0s</div>
+    </div>
+    <div class="hud-bottom">
+      <button class="tool-btn" data-act="undo" title="Undo (U)">↶ UNDO</button>
+      <button class="tool-btn" data-act="erase" id="eraseBtn" title="Erase (E)">✶ ERASE</button>
+      <button class="tool-btn" data-act="clear" title="Clear (C)">✕ CLEAR</button>
+      <button class="tool-btn" data-act="restart" title="Restart (R)">⟳ RETRY</button>
+    </div>
+    <div class="hint" id="hudHint"></div>
+  </div>
+
+  <!-- WIN OVERLAY -->
+  <div id="win" class="overlay hidden">
+    <div class="win-card">
+      <h2 class="win-title">REALM CLEARED</h2>
+      <div class="win-stars" id="winStars">✦✦✦</div>
+      <div class="win-stats" id="winStats"></div>
+      <div class="win-buttons">
+        <button class="btn btn-primary" data-act="next">NEXT REALM</button>
+        <button class="btn" data-act="retry">REPLAY</button>
+        <button class="btn btn-ghost" data-act="menu">MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEATH FLASH -->
+  <div id="flash" class="flash hidden"></div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
