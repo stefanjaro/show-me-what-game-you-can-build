@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VOIDSTORM — Survive the Neon Swarm</title>
+<meta name="description" content="A blazing-fast neon roguelite. Dodge, blast and evolve your way through endless swarms.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+  <div id="vignette" class="layer"></div>
+  <div id="scanlines" class="layer"></div>
+  <div id="fx-red" class="layer"></div>
+  <div id="fx-flash" class="layer"></div>
+
+  <div id="hud" class="hidden">
+    <div id="xpbar"><div id="xpfill"></div></div>
+    <div id="hud-top">
+      <div class="hud-chip" id="hud-timer">0:00</div>
+      <div class="hud-chip" id="hud-level">LV 1</div>
+      <div class="hud-chip" id="hud-kills">KILLS 0</div>
+      <div class="hud-chip" id="hud-gems">GEMS 0</div>
+    </div>
+    <div id="hud-combo"></div>
+    <div id="bossbar" class="hidden">
+      <div id="bossname"></div>
+      <div id="bosshp"><div id="bossfill"></div></div>
+    </div>
+    <div id="hud-left">
+      <div id="hpwrap"><div id="hpfill"></div><div id="hptext">100/100</div></div>
+      <div id="weapicons"></div>
+      <div id="dashwrap"><div id="dashfill"></div></div>
+    </div>
+    <button id="btn-pause">PAUSE</button>
+  </div>
+
+  <div id="touch-ui">
+    <div id="joybase"></div>
+    <div id="joynub"></div>
+    <button id="btn-dash">DASH</button>
+  </div>
+
+  <div id="banner"><div class="b1"></div><div class="b2"></div></div>
+  <div id="toasts"></div>
+
+  <div id="screen-title" class="screen">
+    <div class="logo">VOID<span class="st">STORM</span></div>
+    <div class="sub">SURVIVE THE NEON SWARM</div>
+    <div class="menu" id="title-menu"></div>
+    <div class="statline" id="title-stats"></div>
+    <div class="credit">A NEON ARCADE ROGUELITE — BUILT FOR GLORY</div>
+  </div>
+
+  <div id="screen-chars" class="screen hidden"></div>
+  <div id="screen-shop" class="screen hidden"></div>
+  <div id="screen-help" class="screen hidden"></div>
+
+  <div id="modal-levelup" class="modal hidden">
+    <div class="panel">
+      <div class="ptitle">SYSTEM UPGRADE</div>
+      <div class="lvlhint">CHOOSE ONE — PRESS 1 / 2 / 3 OR CLICK</div>
+      <div id="cards"></div>
+    </div>
+  </div>
+
+  <div id="modal-pause" class="modal hidden"></div>
+
+  <div id="screen-over" class="screen hidden"></div>
+  <div id="screen-win" class="screen hidden"></div>
+</div>
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
