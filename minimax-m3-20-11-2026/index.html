@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>PERIAPSIS — a game of gravity &amp; hunger</title>
+<meta name="description" content="PERIAPSIS is a gravity-roguelite: devour a collapsing cosmos, fling asteroids like cannonballs, and grow from a speck of nothing into an event horizon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="view"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="hud-left">
+        <div class="stat-block">
+          <span class="stat-label">MASS</span>
+          <span class="stat-value" id="hud-mass">60</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-label">SECTOR</span>
+          <span class="stat-value" id="hud-wave">1</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-label">SCORE</span>
+          <span class="stat-value" id="hud-score">0</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-label">KILLS</span>
+          <span class="stat-value" id="hud-kills">0</span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="stat-block right">
+          <span class="stat-label">SEED</span>
+          <span class="stat-value small" id="hud-seed">—</span>
+        </div>
+        <div class="stat-block right">
+          <span class="stat-label">TIME</span>
+          <span class="stat-value" id="hud-time">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="vitals">
+        <div class="bar health"><i id="bar-hp"></i><span id="txt-hp">100</span></div>
+        <div class="bar hunger"><i id="bar-hunger"></i><span id="txt-hunger">FED</span></div>
+        <div class="bar dash"><i id="bar-dash"></i><span id="txt-dash">READY</span></div>
+        <div class="bar ult"><i id="bar-ult"></i><span id="txt-ult">0%</span></div>
+      </div>
+    </div>
+
+    <div id="combo" class="hidden"><b>x0</b><span>FEEDING FRENZY</span></div>
+    <div id="banner" class="hidden"><b></b><span></span></div>
+    <div id="ult-prompt" class="hidden">PRESS <b>Q</b> — EVENT HORIZON</div>
+    <div id="boss-bar" class="hidden"><span id="boss-name">WARDEN</span><div class="boss-track"><i id="boss-fill"></i></div></div>
+    <div id="toasts"></div>
+  </div>
+
+  <div id="title" class="screen">
+    <div class="title-inner">
+      <h1 class="game-title"><span class="glyph">&#9680;</span> PERIAPSIS</h1>
+      <p class="tagline">You are a hole in the universe. <em>Eat everything.</em></p>
+      <div class="title-actions">
+        <button id="btn-play" class="btn primary">BEGIN COLLAPSE</button>
+        <button id="btn-meta" class="btn">REFINE CORE</button>
+        <button id="btn-how" class="btn">HOW TO PLAY</button>
+      </div>
+      <div class="title-stats">
+        <div><span class="k">BEST SCORE</span><span class="v" id="best-score">0</span></div>
+        <div><span class="k">DEEPEST SECTOR</span><span class="v" id="best-wave">—</span></div>
+        <div><span class="k">ECHOES</span><span class="v" id="echo-count">0</span></div>
+      </div>
+      <div class="seed-row">
+        <label for="seed-input">SEED</label>
+        <input id="seed-input" type="text" maxlength="10" spellcheck="false" autocomplete="off">
+        <button id="btn-seed" class="btn tiny">RANDOMISE</button>
+        <button id="btn-daily" class="btn tiny">DAILY</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="how" class="screen hidden">
+    <div class="panel">
+      <h2>HOW TO PLAY</h2>
+      <div class="how-grid">
+        <div class="how-item"><b>W A S D</b><span>Thrust. You carry momentum &mdash; you can orbit planets and slingshot.</span></div>
+        <div class="how-item"><b>SPACE</b><span>DASH. Shoves everything in your gravity field outward as lethal shrapnel.</span></div>
+        <div class="how-item"><b>Q</b><span>EVENT HORIZON. Devours a sphere of space. Charge it by fighting and orbiting.</span></div>
+        <div class="how-item"><b>MOUSE</b><span>Click to dash straight at the cursor. Aim your shrapnel.</span></div>
+        <div class="how-item"><b>1 2 3</b><span>Choose a perk when the singularity levels up.</span></div>
+        <div class="how-item"><b>P / ESC</b><span>Pause. <b>M</b> mutes.</span></div>
+      </div>
+      <div class="how-rules">
+        <h3>THE RULE OF MASS</h3>
+        <p>You devour anything lighter than you. Anything heavier <b>resists</b> &mdash; you cannot swallow a Warden, but you <b>can</b> pick up a mountain and throw it at one.</p>
+        <p>Your gravity field bends enemy fire. Let them shoot into the void and watch the curve swallow the round.</p>
+        <h3>THE HUNGER</h3>
+        <p>Stop devouring and your mass begins to rot away. After four seconds you shrink; after eight you start <b>starving</b>. Keep eating or die hungry.</p>
+      </div>
+      <button class="btn primary" data-close="how">UNDERSTOOD</button>
+    </div>
+  </div>
+
+  <div id="meta" class="screen hidden">
+    <div class="panel wide">
+      <h2>REFINE CORE</h2>
+      <p class="panel-sub">Echoes are harvested from every collapse. Spend them to make the next one inevitable.</p>
+      <div class="meta-list" id="meta-list"></div>
+      <div class="echo-line">ECHOES: <b id="meta-echoes">0</b></div>
+      <button class="btn primary" data-close="meta">RETURN</button>
+    </div>
+  </div>
+
+  <div id="perk" class="screen hidden">
+    <div class="perk-wrap">
+      <h2 class="perk-title">SINGULARITY LEVEL UP</h2>
+      <p class="perk-sub">Choose one mutation</p>
+      <div class="perk-cards" id="perk-cards"></div>
+    </div>
+  </div>
+
+  <div id="pause" class="screen hidden">
+    <div class="panel">
+      <h2>PAUSED</h2>
+      <p class="panel-sub" id="pause-sub"></p>
+      <button id="btn-resume" class="btn primary">RESUME</button>
+      <button id="btn-abort" class="btn">ABANDON RUN</button>
+    </div>
+  </div>
+
+  <div id="gameover" class="screen hidden">
+    <div class="panel wide">
+      <h2 id="go-title">COLLAPSE</h2>
+      <p class="panel-sub" id="go-sub"></p>
+      <div class="go-stats" id="go-stats"></div>
+      <div class="go-echoes" id="go-echoes"></div>
+      <div class="title-actions row">
+        <button id="btn-retry" class="btn primary">COLLAPSE AGAIN</button>
+        <button id="btn-title" class="btn">RETURN TO TITLE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div id="stick"><i id="stick-knob"></i></div>
+    <div id="touch-buttons">
+      <button class="tbtn" id="btn-dash">DASH</button>
+      <button class="tbtn ult" id="btn-ult">ULT</button>
+    </div>
+  </div>
+
+  <div id="loading"><div class="spin"></div><span>CALIBRATING GRAVITY</span></div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
