@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>EMBERDEEP — the only light in a buried world</title>
+<meta name="description" content="EMBERDEEP: a living falling-sand survival roguelite. Devour the world, become the element you eat, and relight the Heart at the bottom of the deep." />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%23ff9440'/><circle cx='16' cy='16' r='4' fill='%23fff3d0'/></svg>" />
+</head>
+<body>
+<div id="app">
+
+  <div id="stage">
+    <canvas id="cWorld" width="640" height="360"></canvas>
+    <canvas id="cLight" width="640" height="360"></canvas>
+    <div id="scanlines"></div>
+
+    <!-- ============================== HUD ============================== -->
+    <div id="hud" class="screen hidden">
+      <div class="hudTop">
+        <div class="hudLeft">
+          <div class="hpWrap">
+            <div class="hpBar"><div id="hpFill" class="hpFill"></div><div id="hpGhost" class="hpGhost"></div></div>
+            <div id="hpText" class="hpText">100</div>
+          </div>
+          <div class="depthRow">
+            <span id="depthLabel">STRATUM I</span>
+            <span id="biomeLabel" class="biome">THE ASHFALL TERRACES</span>
+          </div>
+          <div class="objRow"><span class="objDot"></span><span id="objLabel">HEART</span><span id="objDist">—</span></div>
+        </div>
+        <div class="hudRight">
+          <div id="comboBox" class="comboBox hidden">x<span id="comboVal">2</span><small>COMBO</small></div>
+          <div class="scoreBox"><span class="scoreLabel">SCORE</span><span id="scoreVal">0</span></div>
+          <div class="scoreBox small"><span class="scoreLabel">CINDERS</span><span id="cinderVal">0</span></div>
+          <div class="mapWrap">
+            <canvas id="minimap" width="200" height="120"></canvas>
+            <span class="mapLabel">STRATUM MAP</span>
+          </div>
+          <button id="btnPause" class="btn pauseBtn" title="Pause (ESC)">❚❚</button>
+        </div>
+      </div>
+
+      <div id="bossBar" class="bossBar hidden">
+        <div class="bossName">THE WARDEN</div>
+        <div class="bossTrack"><div id="bossFill"></div></div>
+      </div>
+
+      <div class="hudBottom">
+        <div class="meters">
+          <div class="meter" data-el="0"><span class="mKey">LMB</span><span class="mName">EMBER</span><div class="mTrack"><i></i></div></div>
+          <div class="meter" data-el="1"><span class="mKey">RMB</span><span class="mName">TIDE</span><div class="mTrack"><i></i></div></div>
+          <div class="meter" data-el="2"><span class="mKey">E</span><span class="mName">SPARK</span><div class="mTrack"><i></i></div></div>
+          <div class="meter" data-el="3"><span class="mKey">Q</span><span class="mName">BLOOM</span><div class="mTrack"><i></i></div></div>
+        </div>
+        <div class="rightHud">
+          <div class="formBadge"><span id="formName">EMBER</span><small>FORM</small></div>
+          <div class="dashBadge"><span class="dKey">SPACE</span><div id="dashPips" class="pips"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ TITLE ============================ -->
+    <div id="screen-title" class="screen overlay">
+      <div class="titleInner">
+        <div class="eyebrow">a falling-sand survival roguelite</div>
+        <h1 class="logo"><span class="logoEm">EMBER</span><span class="logoDeep">DEEP</span></h1>
+        <p class="tagline">You are the last light in a buried world.<br/>Devour the earth. Become what you eat. Relight the Heart.</p>
+        <div class="btnRow">
+          <button id="btnStart" class="btn big">DESCEND</button>
+          <button id="btnShop" class="btn">CINDERS</button>
+          <button id="btnHelp" class="btn">HOW TO PLAY</button>
+        </div>
+        <div class="footStats">
+          <span>DEEPEST <b id="statDeep">—</b></span>
+          <span>RUNS <b id="statRuns">—</b></span>
+          <span>BEST <b id="statBest">—</b></span>
+          <span>CINDERS <b id="statCinders">0</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ PAUSE ============================ -->
+    <div id="screen-pause" class="screen overlay hidden">
+      <div class="panel">
+        <h2>PAUSED</h2>
+        <div class="btnRow col">
+          <button id="btnResume" class="btn big">RESUME</button>
+          <button id="btnPauseShop" class="btn">CINDERS</button>
+          <button id="btnAbandon" class="btn danger">ABANDON RUN</button>
+        </div>
+        <p class="hint">ESC to resume</p>
+      </div>
+    </div>
+
+    <!-- ============================ DEATH ============================ -->
+    <div id="screen-death" class="screen overlay hidden">
+      <div class="panel wide">
+        <h2 class="dead">THE EMBER GOES OUT</h2>
+        <div class="statGrid" id="deathStats"></div>
+        <div class="cinery">
+          <span class="cinLabel">CINDERS EARNED</span>
+          <span id="deathCinders" class="cinVal">+0</span>
+        </div>
+        <div class="btnRow">
+          <button id="btnAgain" class="btn big">DESCEND AGAIN</button>
+          <button id="btnDeathShop" class="btn">CINDERS</button>
+          <button id="btnSurface" class="btn">SURFACE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ DRAFT ============================ -->
+    <div id="screen-draft" class="screen overlay hidden">
+      <div class="draftInner">
+        <div class="eyebrow">the heart is lit — choose what you become</div>
+        <h2 class="draftTitle">MUTATION</h2>
+        <div id="draftCards" class="draftCards"></div>
+      </div>
+    </div>
+
+    <!-- ============================= SHOP ============================= -->
+    <div id="screen-shop" class="screen overlay hidden">
+      <div class="panel wide">
+        <div class="shopHead">
+          <h2>CINDERS</h2>
+          <div class="cinderBank">◆ <span id="cinderCount">0</span></div>
+        </div>
+        <p class="hint">Cinders are permanent. Spend them to carry power into every future descent.</p>
+        <div id="shopRows" class="shopRows"></div>
+        <div class="btnRow"><button id="btnShopBack" class="btn">BACK</button></div>
+      </div>
+    </div>
+
+    <!-- ============================= HELP ============================= -->
+    <div id="screen-help" class="screen overlay hidden">
+      <div class="panel wide">
+        <h2>HOW TO PLAY</h2>
+        <div class="helpGrid">
+          <div class="helpCol">
+            <h3>MOVE</h3>
+            <ul>
+              <li><b>WASD</b> / <b>Arrows</b> — drift</li>
+              <li><b>Mouse</b> — aim</li>
+              <li><b>Space</b> — dash (brief invulnerability)</li>
+              <li><b>Hold F</b> — siphon: devour matter, feed your body</li>
+            </ul>
+            <h3>CAST</h3>
+            <ul>
+              <li><b>Left click</b> / <b>J</b> — <span class="c0">IGNITE</span> fireball</li>
+              <li><b>Right click</b> / <b>K</b> — <span class="c1">QUENCH</span> water spray</li>
+              <li><b>E</b> — <span class="c2">ARC</span> lightning (conducts through water &amp; metal)</li>
+              <li><b>Q</b> — <span class="c3">SEED</span> spore bloom</li>
+            </ul>
+          </div>
+          <div class="helpCol">
+            <h3>THE ELEMENTS</h3>
+            <ul>
+              <li><span class="c0">EMBER</span> — burns the world, fears water</li>
+              <li><span class="c1">TIDE</span> — drowns fire, cools lava, swims</li>
+              <li><span class="c2">SPARK</span> — swift, electrifies, conducts</li>
+              <li><span class="c3">BLOOM</span> — grows, mends you, burns slowly</li>
+            </ul>
+            <h3>THE RULE</h3>
+            <p class="ruleText">Your <b>body is whichever element you have fed most</b> — and it changes the rules. Rock feeds your current body; lava makes you <span class="c0">EMBER</span>, water makes you <span class="c1">TIDE</span>, spores make you <span class="c3">BLOOM</span>. Become the thing you eat.</p>
+            <h3>THE GOAL</h3>
+            <p class="ruleText">Find the <b>Heart</b> at the bottom of every stratum and touch it to descend. Each stratum grants a mutation — permanently, for that run.</p>
+          </div>
+        </div>
+        <div class="btnRow"><button id="btnHelpBack" class="btn">BACK</button></div>
+      </div>
+    </div>
+
+    <div id="announce" class="announce hidden"><b id="announceA"></b><span id="announceB"></span></div>
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <footer id="foot">
+    <span>EMBERDEEP</span><i>·</i><span>WASD move · SPACE dash · LMB/RMB/E/Q cast · F siphon · ESC pause</span>
+  </footer>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
